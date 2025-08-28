@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Meta DestrΩyer</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  * {margin:0;padding:0;box-sizing:border-box;font-family:'Orbitron',sans-serif;}
+  body, html {width:100%;height:100%;overflow:hidden;}
+  body {
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    color:white;
+  }
+
+  #bgVideo {
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    z-index:-1;
+  }
+
+  .panel {background: rgba(0,0,0,0); border:none; border-radius:18px; padding:25px 30px; width:360px; text-align:center; display:none; position:relative; transition:all 0.3s ease; box-shadow:none;}
+  h2 {color: rgb(213,0,0); font-size:26px; margin-bottom:20px; text-shadow: 2px 2px 6px #660000;}
+  input, select {width:100%; padding:12px; margin:10px 0; border-radius:10px; border:none; background:#220000; color:#fff; box-shadow: inset 0 0 10px #ff000033;}
+  button.panel-btn {padding:12px; width:100%; margin:10px 0; border:none; border-radius:10px; background:linear-gradient(135deg,#800000,#ff0000); color:white; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.3s ease;}
+  button.panel-btn:hover {transform:scale(1.05); background:linear-gradient(135deg,#b30000,#ff4d4d); box-shadow:0 0 20px #ff4d4d;}
+
+  .menu-buttons {display:flex; justify-content:space-between; margin-top:20px; gap:10px;}
+  .menu-buttons button {width:110px;font-size:14px;}
+  .status {margin-top:15px;font-size:14px;color:#ff0000;text-shadow: 1px 1px 4px #330000;}
+  
+  .progress-container {
+    width:100%; height:20px; background:#330000; border-radius:10px; margin-top:15px; overflow:hidden; display:none; position:relative;
+  }
+  .progress-bar {height:100%; width:0%; background:linear-gradient(90deg,#800000,#ff0000); transition:width 0.1s linear;}
+  .progress-text {
+    position:absolute; top:0; left:50%; transform:translateX(-50%);
+    width:100%; text-align:center; color:#ff3333; font-weight:bold; font-size:14px; text-shadow:1px 1px 3px #660000;
+  }
+</style>
+</head>
+<body>
+
+<video autoplay muted loop id="bgVideo">
+  <source src="https://files.catbox.moe/brw83q.mp4" type="video/mp4">
+</video>
+
+<div class="panel" id="loginPanel" style="display:block;">
+  <h2>Login Access</h2>
+  <input type="text" id="number" placeholder="Username...">
+  <button class="panel-btn" onclick="handleLogin()"><i class="fa-solid fa-right-to-bracket"></i> Enter</button>
+  <div id="loginError" style="color:red;font-size:12px;margin-top:8px;"></div>
+</div>
+
+<div class="panel" id="menuPanel">
+  <h2>𖤐 𝐌𝐞𝐭𝐚 𝐃𝐞𝐬𝐭𝐫Ω𝐲𝐞𝐫 𖤐</h2>
+  <div class="menu-buttons">
+    <button class="panel-btn" onclick="showPanel('execPanel')"><i class="fa-solid fa-bug"></i></button>
+    <button class="panel-btn" onclick="showPanel('settingPanel')"><i class="fa-solid fa-gear"></i></button>
+    <button class="panel-btn" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i></button>
+  </div>
+</div>
+
+<div class="panel" id="execPanel">
+  <h2><i class="fa-solid fa-bug"></i> 𝐀𝐭𝐭𝐚𝐜𝐤 𝐌𝐞𝐧𝐮</h2>
+  <input type="text" id="targetNumber" placeholder="Contoh : 628xxx">
+  <select id="bugType">
+    <option value="crash">Forclose Andro</option>
+    <option value="combo">Forclose One Msg</option>
+    <option value="ip">Blank iOS</option>
+    <option value="gc">Freeze Group</option>
+  </select>
+  <button class="panel-btn" onclick="sendBugToTarget()"><i class="fa-solid fa-paper-plane"></i> Send Bug</button>
+  <button class="panel-btn" onclick="backToMenu()"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+  <div class="progress-container" id="progressContainer">
+    <div class="progress-bar" id="progressBar"></div>
+    <div class="progress-text" id="progressText">0%</div>
+  </div>
+  <div class="status" id="bugStatus"></div>
+</div>
+
+<div class="panel" id="settingPanel">
+  <h2><i class="fa-solid fa-gear"></i> 𝐒𝐞𝐭𝐭𝐢𝐧𝐠 𝐌𝐞𝐧𝐮</h2>
+  <input type="text" id="pairTarget" placeholder="Nomor untuk Pairing ex: 628xxx">
+  <button class="panel-btn" onclick="pairBot()"><i class="fa-solid fa-key"></i> Get Code</button>
+  <button class="panel-btn" onclick="deleteSession()"><i class="fa-solid fa-trash"></i> Hapus Session</button>
+  <button class="panel-btn" onclick="restartPanel()"><i class="fa-solid fa-rotate-right"></i> Restart Bot</button>
+  <div class="status" id="controlStatus">Menunggu Aksi...</div>
+  <button class="panel-btn" onclick="backToMenu()"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+  <div class="status" id="pairStatus">Belum Terhubung Ke Server!</div>
+</div>
+
+<script>
+let currentNumber = "";
+function handleLogin(){
+  const number=document.getElementById("number").value.trim();
+  const allowed=["ZalStexcu"];
+  if(!allowed.includes(number)){
+    document.getElementById("loginError").innerText="Username Tidak Masuk Dalam Database";
+    return;
+  }
+  currentNumber=number;
+  document.getElementById("loginPanel").style.display="none";
+  document.getElementById("menuPanel").style.display="block";
+}
+function showPanel(panel){
+  document.getElementById("menuPanel").style.display="none";
+  document.getElementById("execPanel").style.display="none";
+  document.getElementById("settingPanel").style.display="none";
+  document.getElementById(panel).style.display="block";
+}
+function backToMenu(){
+  document.getElementById("execPanel").style.display="none";
+  document.getElementById("settingPanel").style.display="none";
+  document.getElementById("menuPanel").style.display="block";
+}
+function logout(){location.reload();}
+function sendBugToTarget(){
+  const target=document.getElementById("targetNumber").value.trim();
+  const type=document.getElementById("bugType").value;
+  const statusEl=document.getElementById("bugStatus");
+  const progressContainer=document.getElementById("progressContainer");
+  const progressBar=document.getElementById("progressBar");
+  const progressText=document.getElementById("progressText");
+  if(!target){alert("Isi Nomer Target Dulu!");return;}
+  statusEl.style.color="red";
+  statusEl.innerHTML="Sedang Menyerang Target...";
+  progressContainer.style.display="block";
+  progressBar.style.width="0%";
+  progressText.innerText="0%";
+  fetch(`/api/bug/${type}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({number:target})}).catch(()=>{});
+  let progress=0;
+  let interval=setInterval(()=>{
+    progress+=2;
+    if(progress>100) progress=100;
+    progressBar.style.width=progress + "%";
+    progressText.innerText=progress + "%";
+    if(progress>=100){
+      clearInterval(interval);
+      progressContainer.style.display="none";
+      statusEl.style.color="red";
+      statusEl.innerHTML="Successfully Sending Bug!";
+    }
+  },100);
+}
+function pairBot(){
+  const target=document.getElementById("pairTarget").value.trim();
+  if(!target) return alert("Isi Nomer Dulu!");
+  fetch("/api/pair",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({number:target,code:"ZALXMETA"})})
+  .then(res=>{if(!res.ok)throw new Error("Pairing gagal"); return res.json();})
+  .then(data=>{alert("Kode Pairing :\n"+data.code);})
+  .catch(()=>alert("Pairing Code Gagal!"));
+}
+function setControlStatus(text,color="red"){document.getElementById("controlStatus").style.color=color;document.getElementById("controlStatus").innerHTML=text;}
+function deleteSession(){
+  if(!confirm("Hapus Session?")) return;
+  setControlStatus("Menghapus Session...","yellow");
+  fetch("/api/session/delete",{method:"POST"}).then(res=>{if(!res.ok)throw new Error(); return res.json();}).then(()=>setControlStatus("Session Dihapus!","red")).catch(()=>setControlStatus("Gagal Hapus Session!","red"));
+}
+function restartPanel(){
+  if(!confirm("Mau Restart Bot?")) return;
+  setControlStatus("Merestart Bot...","yellow");
+  fetch("/api/panel/restart",{method:"POST"}).then(res=>{if(!res.ok)throw new Error(); return res.json();}).then(()=>setControlStatus("Bot Berhasil Direstart!","red")).catch(()=>setControlStatus("Gagal Restart Bot!","red"));
+}
+function listenBotStatus(){
+  const evt=new EventSource("/api/status");
+  evt.onmessage=function(e){
+    const data=JSON.parse(e.data);
+    const el=document.getElementById("pairStatus");
+    if(data.status.includes("Connect")){el.innerHTML=`<span style='color:red;'>${data.status} Ke Server!</span>`;}
+    else{el.innerHTML=`<span style='color:red;'>Belum ${data.status} Ke Server!</span>`;}
+  }
+}
+listenBotStatus();
+</script>
+
+</body>
+</html>
